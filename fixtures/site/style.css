@@ -1,0 +1,7 @@
+body { font-family: sans-serif; margin: 0; }
+.hero { background: #111827; color: #fff; padding: 40px; }
+nav a { color: #93c5fd; margin-right: 16px; }
+/* Deliberate bug: 900px fixed width overflows any viewport narrower than that */
+.banner { width: 900px; background: #f59e0b; padding: 14px; font-weight: bold; }
+.icon-send { display: inline-block; width: 16px; height: 16px; background: #333; }
+form { margin: 24px 0; }

@@ -1,0 +1,18 @@
+[project]
+name = "uicheck"
+version = "0.1.0"
+description = "Smoke-test CLI for AI-generated web interfaces"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = []
+
+[project.optional-dependencies]
+browser = ["playwright>=1.40"]
+
+[project.scripts]
+uicheck = "uicheck.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"

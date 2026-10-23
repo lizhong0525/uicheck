@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>BuggyCo — AI-generated landing page</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="hero">
+  <h1>BuggyCo</h1>
+  <p class="tagline">Shipped by an AI in 30 seconds. Reviewed by no one.</p>
+  <nav>
+    <a href="about.html">About</a>
+    <a href="pricing.html">Pricing</a> <!-- BUG: this file does not exist -->
+    <a href="#faq">FAQ</a> <!-- BUG: no element with id="faq" -->
+    <a onclick="alert('contact')">Contact</a> <!-- BUG: no href, not keyboard-focusable -->
+  </nav>
+</header>
+
+<main>
+  <!-- BUG: fixed-width banner wider than a phone viewport -->
+  <div class="banner">Limited offer — 50% off everything this week only!!!</div>
+
+  <!-- BUG: image without alt -->
+  <img src="logo.png">
+  <!-- BUG: image that 404s -->
+  <img src="screenshot-final-v2.png" alt="Product screenshot">
+
+  <form>
+    <!-- BUG: input without label or aria-label -->
+    <input type="email" name="email" placeholder="you@example.com">
+    <!-- BUG: empty button, no accessible name -->
+    <button type="submit"><span class="icon-send"></span></button>
+  </form>
+
+  <!-- BUG: positive tabindex hijacks the focus order -->
+  <button tabindex="5">Sign up now</button>
+
+  <script src="app.js"></script>
+</main>
+</body>
+</html>
