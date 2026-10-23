@@ -23,6 +23,8 @@ python -m http.server 8000 --directory fixtures/site &
 uicheck scan --base-url http://localhost:8000 --routes /,/about.html --out report.html
 ```
 
+> Git Bash on Windows converts arguments with a leading `/` (routes like `/,/about.html`, specs like `/=fixtures/...`) into Windows paths — prefix these commands with `MSYS_NO_PATHCONV=1` or routes show up mangled as `D:/Git/...` in the report.
+
 Exit code is `1` when critical/high findings exist (`--no-fail` overrides), `2` on usage/environment errors, `0` otherwise — so it drops straight into CI.
 
 ## Demo walkthrough (included fixtures)
@@ -32,7 +34,7 @@ Exit code is `1` when critical/high findings exist (`--no-fail` overrides), `2` 
 Offline audit (works anywhere, no browser):
 
 ```bash
-python -m uicheck audit "/=fixtures/site/index.html" "/about=fixtures/site/about.html" \
+uicheck audit "/=fixtures/site/index.html" "/about=fixtures/site/about.html" \
   --local-root fixtures/site --base-url http://localhost:8000 --out demo-report.html
 ```
 
@@ -47,7 +49,7 @@ Live scan (with Playwright + Chromium installed):
 
 ```bash
 python -m http.server 8000 --directory fixtures/site &
-python -m uicheck scan --base-url http://localhost:8000 --routes /,/about.html \
+uicheck scan --base-url http://localhost:8000 --routes /,/about.html \
   --viewports 375x812:mobile,1280x800:desktop --out demo-report.html
 ```
 
@@ -59,8 +61,6 @@ report written to demo-report.html
 ```
 
 The live scan additionally catches the uncaught JS exception, the `console.error`, the 404 image, and the horizontal overflow at 375px, and embeds real screenshots in the report.
-
-> Git Bash on Windows converts leading `/` arguments into Windows paths; prefix scan commands with `MSYS_NO_PATHCONV=1` there.
 
 Open the report in any browser — it's a single self-contained HTML file: severity badges, per-finding reproduction steps, console/network signals, and per-viewport screenshots.
 
@@ -81,7 +81,7 @@ Open the report in any browser — it's a single self-contained HTML file: sever
 - **Missing accessible names** — empty buttons, links without text, images without `alt`, inputs without labels — medium
 - **Keyboard-focus failures** — `<a>` without `href`, interactive elements with `tabindex="-1"`, positive `tabindex` — medium / low
 
-UICheck never modifies your source code. It only reads and reports.
+UICheck never modifies your source code. It only reads and reports. The only network traffic is to your target `--base-url` and its internal links — no telemetry, nothing is uploaded anywhere.
 
 ## Development
 
