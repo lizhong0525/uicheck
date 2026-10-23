@@ -28,14 +28,24 @@ def _parse_viewports(spec: str) -> list[tuple[int, int, str]]:
             width, height = int(w), int(h)
         except ValueError:
             raise argparse.ArgumentTypeError(
-                f"invalid viewport '{chunk}' — expected WIDTHxHEIGHT[:label], e.g. 375x812:mobile"
+                f"invalid viewport '{chunk}' - expected WIDTHxHEIGHT[:label], e.g. 375x812:mobile"
             )
         if width <= 0 or height <= 0:
-            raise argparse.ArgumentTypeError(f"invalid viewport '{chunk}' — dimensions must be positive")
+            raise argparse.ArgumentTypeError(f"invalid viewport '{chunk}' - dimensions must be positive")
         out.append((width, height, label))
     if not out:
         raise argparse.ArgumentTypeError("at least one viewport is required")
     return out
+
+
+def _positive_int(value: str) -> int:
+    try:
+        number = int(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"invalid integer: {value!r}")
+    if number <= 0:
+        raise argparse.ArgumentTypeError("value must be a positive integer")
+    return number
 
 
 def _parse_routes(spec: str) -> list[str]:
@@ -47,8 +57,13 @@ def _parse_routes(spec: str) -> list[str]:
 
 def _write_report(result, out_path: str) -> None:
     html_text = render_report(result, tool_version=__version__)
-    with open(out_path, "w", encoding="utf-8") as fh:
-        fh.write(html_text)
+    try:
+        with open(out_path, "w", encoding="utf-8") as fh:
+            fh.write(html_text)
+    except OSError as exc:
+        reason = exc.strerror or str(exc)
+        print(f"error: cannot write report to {out_path}: {reason}", file=sys.stderr)
+        raise SystemExit(2)
 
 
 def cmd_scan(args: argparse.Namespace) -> int:
@@ -65,7 +80,7 @@ def cmd_scan(args: argparse.Namespace) -> int:
         print(f"error: {exc}", file=sys.stderr)
         return 2
     except Exception as exc:  # unreachable host, DNS failure, etc.
-        print(f"error: scan failed — {exc}", file=sys.stderr)
+        print(f"error: scan failed - {exc}", file=sys.stderr)
         return 2
 
     result = run_checks(snapshots, base_url=args.base_url, known_routes=args.routes)
@@ -81,6 +96,11 @@ def cmd_audit(args: argparse.Namespace) -> int:
         route, sep, path = entry.partition("=")
         if not sep:
             route, path = os.path.basename(entry), entry
+        if not path:
+            print(f"error: no file specified in '{entry}' (expected route=path)", file=sys.stderr)
+            return 2
+        if not route:
+            route = os.path.basename(path)
         if not os.path.isfile(path):
             print(f"error: file not found: {path}", file=sys.stderr)
             return 2
@@ -120,9 +140,13 @@ def cmd_report(args: argparse.Namespace) -> int:
         print(f"error: {args.snapshot} is not valid JSON ({exc})", file=sys.stderr)
         return 2
     items = raw if isinstance(raw, list) else [raw]
+    for item in items:
+        if not isinstance(item, dict):
+            print(f"error: {args.snapshot} is not a UICheck snapshot (expected a JSON object)", file=sys.stderr)
+            return 2
     try:
         snapshots = [PageSnapshot.from_json(json.dumps(item)) for item in items]
-    except (KeyError, TypeError) as exc:
+    except (KeyError, TypeError, AttributeError) as exc:
         print(f"error: {args.snapshot} is not a UICheck snapshot ({exc})", file=sys.stderr)
         return 2
     result = run_checks(snapshots, base_url=args.base_url or "")
@@ -159,7 +183,7 @@ def build_parser() -> argparse.ArgumentParser:
                       help="comma-separated routes, e.g. /,/about,/pricing")
     scan.add_argument("--viewports", type=_parse_viewports, default=DEFAULT_VIEWPORTS,
                       help="comma-separated WIDTHxHEIGHT[:label], e.g. 375x812:mobile,1280x800:desktop")
-    scan.add_argument("--timeout", type=int, default=15, help="per-page timeout in seconds")
+    scan.add_argument("--timeout", type=_positive_int, default=15, help="per-page timeout in seconds")
     scan.add_argument("--out", default="uicheck-report.html")
     scan.add_argument("--no-fail", action="store_true", help="always exit 0 even with findings")
     scan.set_defaults(func=cmd_scan)

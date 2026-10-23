@@ -87,6 +87,47 @@ def test_report_wrong_shape_json(tmp_path, capsys):
     assert "not a UICheck snapshot" in capsys.readouterr().err
 
 
+def test_report_non_object_json_items(tmp_path, capsys):
+    for payload in ("[1, 2]", '"hello"', "null", '{"route": "/", "url": "u", "viewports": [1]}'):
+        path = tmp_path / "bad.json"
+        path.write_text(payload, encoding="utf-8")
+        code = main(["report", str(path), "--out", str(tmp_path / "r.html")])
+        assert code == 2, payload
+    assert "not a UICheck snapshot" in capsys.readouterr().err
+
+
+def test_audit_empty_path_in_route_spec(tmp_path, capsys):
+    code = main(["audit", "/x=", "--out", str(tmp_path / "r.html")])
+    assert code == 2
+    assert "no file specified" in capsys.readouterr().err
+
+
+def test_audit_empty_route_falls_back_to_basename(tmp_path, capsys):
+    code = main([
+        "audit",
+        f"={os.path.join(SITE, 'index.html')}",
+        "--local-root", SITE,
+        "--out", str(tmp_path / "r.html"),
+    ])
+    assert code == 1  # audited as index.html instead of crashing on an empty route
+
+
+def test_unwritable_out_path_is_clean_error(tmp_path, capsys):
+    with pytest.raises(SystemExit) as excinfo:
+        main(["audit", os.path.join(SITE, "index.html"), "--local-root", SITE, "--out", str(tmp_path)])
+    assert excinfo.value.code == 2
+    assert "cannot write report" in capsys.readouterr().err
+
+
+def test_invalid_timeout_rejected(capsys):
+    parser = build_parser()
+    for bad in ("0", "-5", "soon"):
+        with pytest.raises(SystemExit):
+            parser.parse_args(["scan", "--base-url", "http://x", "--timeout", bad])
+    err = capsys.readouterr().err
+    assert "positive integer" in err or "invalid integer" in err
+
+
 def test_invalid_viewport_rejected(capsys):
     parser = build_parser()
     with pytest.raises(SystemExit):

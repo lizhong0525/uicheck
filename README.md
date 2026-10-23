@@ -87,7 +87,7 @@ UICheck never modifies your source code. It only reads and reports.
 
 ```bash
 python -m pip install pytest   # only test dependency
-python -m pytest -q            # 34 tests, no browser, no network
+python -m pytest -q            # 39 tests, no browser, no network
 ```
 
 Tests cover HTML probing, every check, report rendering, snapshot serialization, and CLI failure paths against saved fixtures. The Playwright path (`uicheck/browser.py`) is imported lazily and exercised manually.
