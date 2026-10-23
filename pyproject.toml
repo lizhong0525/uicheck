@@ -13,6 +13,9 @@ browser = ["playwright>=1.40"]
 [project.scripts]
 uicheck = "uicheck.cli:main"
 
+[tool.setuptools]
+packages = ["uicheck"]
+
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"

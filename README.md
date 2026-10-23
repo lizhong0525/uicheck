@@ -9,12 +9,18 @@ Smoke-test CLI for AI-generated web interfaces: point it at a local dev server (
 ## Quickstart
 
 ```bash
+python -m pip install -e .   # from the repo root; adds the `uicheck` command
+```
+
+(Or run `python -m uicheck ...` from the repo root without installing.)
+
+```bash
 # Offline, no browser needed — audit saved HTML files:
-python -m uicheck audit "/=fixtures/site/index.html" --local-root fixtures/site --out report.html
+uicheck audit "/=fixtures/site/index.html" --local-root fixtures/site --out report.html
 
 # Live scan (needs: pip install playwright && playwright install chromium):
 python -m http.server 8000 --directory fixtures/site &
-python -m uicheck scan --base-url http://localhost:8000 --routes /,/about.html --out report.html
+uicheck scan --base-url http://localhost:8000 --routes /,/about.html --out report.html
 ```
 
 Exit code is `1` when critical/high findings exist (`--no-fail` overrides), `2` on usage/environment errors, `0` otherwise — so it drops straight into CI.
